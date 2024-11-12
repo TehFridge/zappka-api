@@ -27,7 +27,7 @@ identityProviderToken = zappka.auth.verify_custom_token(customToken)
 # Required so the API won't cry about not starting a session or something.
 zappka.auth.get_account_info(identityProviderToken)
 
-snrsToken = zappka.snrs.get_snrs_token(identityProviderToken)
+snrsToken = identityProviderToken
 
 while True:
     print("\n")
@@ -81,10 +81,10 @@ while True:
                 print("\n")
                 print("Main > Synerise")
                 print("1. Get żappsy amount")
-                print("2. Transfer żappsy")
+                print("2. Transfer żappsy (NOT WORKING - API CHANGES)")
                 print("3. Get personal information")
-                print("4. Get żappsy history (long response print!)")
-                print("5. Coupon functions")
+                print("4. Get żappsy history (NOT WORKING - API CHANGES)")
+                print("5. Coupon functions (NOT WORKING - Workin on it i swear)")
                 print("6. Exit")
 
                 choice = int(input("> "))
@@ -92,7 +92,7 @@ while True:
                 match choice:
                     case 1:
                         print(f"Current żappsy amount: {zappka.snrs.get_current_zappsy_amount(snrsToken)}")
-                        print(f"All-time collected żappsy amount: {zappka.snrs.get_alltime_zappsy_amount(snrsToken)}")
+                        #print(f"All-time collected żappsy amount: {zappka.snrs.get_alltime_zappsy_amount(snrsToken)}")
                     case 2:
                         try:
                             phoneNumber = input("Enter recipient phone number (ex. 123456789): ")
@@ -153,7 +153,7 @@ while True:
                         # Show URL as QR code
                         qr = qrcode.QRCode(
                                 version=1,
-                                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                                error_correction=qrcode.constants.ERROR_CORRECT_H,
                                 box_size=10,
                                 border=4,
                         )

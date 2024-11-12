@@ -223,23 +223,37 @@ class snrs:
         """
         uid = str(uuid.uuid4())
 
-        url = "https://zabka-snrs.zabka.pl/sauth/v3/auth/login/client/conditional"
+        url = "https://api.spapp.zabka.pl/"
 
         headers = {
-            "api-version": "4.4",
-            "application-id": "%C5%BCappka",
-            "user-agent": "Synerise Android SDK 5.9.0 pl.zabka.apb2c",
+            "Cache-Control": "no-cache", 
+            "user-agent": "Zappka/40038 (Android; MEDIATEK/GS2018; 56c41945-ba88-4543-a525-4e8f7d4a5812) REL/30", 
             "accept": "application/json",
-            "content-type": "application/json; charset=UTF-8",
-            "mobile-info": "horizon;28;AW700000000;9;CTR-001;nintendo;5.9.0",
+            "content-type": "application/json; charset=UTF-8", 
+            "authorization": identityProviderToken,
         }
 
         data = {
-            "identityProviderToken": identityProviderToken,
-            "identityProvider": "OAUTH",
-            "apiKey": "b646c65e-a43d-4a61-9294-6c7c4385c762",
-            "uuid": uid,
-            "deviceId": "0432b18513e325a5",
+            "operationName": "SignIn",
+            "query": """
+                mutation SignIn($signInInput: SignInInput!) { 
+                    signIn(signInInput: $signInInput) { 
+                        profile { 
+                            __typename 
+                            ...UserProfileParts 
+                        } 
+                    } 
+                }  
+                fragment UserProfileParts on UserProfile { 
+                    email 
+                    gender 
+                }
+            """,
+            "variables": {
+                "signInInput": {
+                    "sessionId": "65da013a-0d7d-3ad4-82bd-2bc15077d7f5"
+                }
+            }
         }
 
         response = requests.post(url, headers=headers, data=json.dumps(data))
@@ -249,27 +263,38 @@ class snrs:
         except KeyError:
             raise Exception("No token in response. (snrs)")
 
-    def get_current_zappsy_amount(snrsToken):
+    def get_current_zappsy_amount(mainAuthToken):
         """
         Requires snrs token. Returns żappsy amount.
         """
-        url = "https://zabka-snrs.zabka.pl/schema-service/v2/documents/points/generate"
+        url = "https://api.spapp.zabka.pl/"
 
+        data = {
+            "operationName": "LoyaltyPoints",
+            "query": """
+                query LoyaltyPoints { 
+                    loyaltyProgram { 
+                        points 
+                        pointsStatus 
+                        pointsOperationsAvailable 
+                    } 
+                }
+            """,
+            "variables": {}
+        }
+        
         headers = {
             "Cache-Control": "no-cache", 
-            "api-version": "4.4", 
-            "application-id": "%C5%BCappka", 
-            "user-agent": "Synerise Android SDK 5.9.0 pl.zabka.apb2c", 
-            "accept": "application/json", 
-            "mobile-info": "horizon;28;AW700000000;9;CTR-001;nintendo;5.9.0", 
+            "user-agent": "Zappka/40038 (Android; MEDIATEK/GS2018; 56c41945-ba88-4543-a525-4e8f7d4a5812) REL/30", 
+            "accept": "application/json",
             "content-type": "application/json; charset=UTF-8", 
-            "authorization": snrsToken,
+            "authorization": mainAuthToken,
         }
 
-        response = requests.get(url, headers=headers)
+        response = requests.post(url, headers=headers, data=json.dumps(data))
 
         try:
-            return response.json()['content']['points']
+            return response.json()['data']['loyaltyProgram']['points']
         except KeyError:
             print("Error: No points value in response.")
             return None
@@ -411,20 +436,36 @@ class snrs:
 class qr:
 
     def get_qr_code(identityProviderToken):
-        url = "https://qr-bff.spapp.zabka.pl/qr-code/secret"
+        url = "https://api.spapp.zabka.pl/"
 
-        headers = {
-            "Authorization": identityProviderToken,
-            "content-type": "application/json",
-            "app": "zappka-mobile",
-            "user-agent": "okhttp/4.12.0"
+        data = {
+            "operationName": "QrCode",
+            "query": """
+                query QrCode { 
+                    qrCode { 
+                        loyalSecret 
+                        paySecret 
+                        ployId 
+                    } 
+                }
+            """,
+            "variables": {}
         }
 
-        response = requests.get(url, headers=headers)
+        
+        headers = {
+            "Cache-Control": "no-cache", 
+            "user-agent": "Zappka/40038 (Android; MEDIATEK/GS2018; 56c41945-ba88-4543-a525-4e8f7d4a5812) REL/30", 
+            "accept": "application/json",
+            "content-type": "application/json; charset=UTF-8", 
+            "authorization": identityProviderToken,
+        }
 
-        loyal = response.json()['secrets']['loyal'] # secret
+        response = requests.get(url, headers=headers, data=json.dumps(data))
+
+        loyal = response.json()['data']['qrCode']['loyalSecret'] # secret
         # pay = response.json()['secrets']['pay'] # unused but might be useful for later ig
-        userId = response.json()['userId']
+        userId = response.json()['data']['qrCode']['ployId']
 
         # TOTP calculation by https://github.com/domints
 
@@ -443,4 +484,4 @@ class qr:
 
         totp = '{magic:06d}'.format(magic=magic)
 
-        return f"https://zlgn.pl/view/dashboard?ploy={userId}&loyal={totp}"
+        return f"https://srln.pl/view/dashboard?ploy={userId}&loyal={totp}"
