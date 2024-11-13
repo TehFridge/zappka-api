@@ -148,7 +148,7 @@ while True:
 
                 match choice:
                     case 1:
-                        url = zappka.qr.get_qr_code(identityProviderToken)
+                        url = zappka.qr.get_qr_code(snrsToken)
 
                         # Show URL as QR code
                         qr = qrcode.QRCode(
