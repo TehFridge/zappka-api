@@ -461,7 +461,7 @@ class qr:
             "authorization": identityProviderToken,
         }
 
-        response = requests.get(url, headers=headers, data=json.dumps(data))
+        response = requests.post(url, headers=headers, data=json.dumps(data))
 
         loyal = response.json()['data']['qrCode']['loyalSecret'] # secret
         # pay = response.json()['secrets']['pay'] # unused but might be useful for later ig
